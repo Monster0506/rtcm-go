@@ -37,3 +37,9 @@ func (r *BitReader) ReadInt(nbits int) int64 {
 	shift := 64 - nbits
 	return int64(v<<shift) >> shift
 }
+
+func (r *BitReader) ReadBits38() int64 {
+	high := r.ReadInt(32)
+	low := r.ReadUint(6)
+	return high*64 + int64(low)
+}
