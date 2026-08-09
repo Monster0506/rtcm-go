@@ -27,6 +27,12 @@ func TestBitReaderReadUint(t *testing.T) {
 			reads:    []int{64},
 			expected: []uint64{0x0123456789ABCDEF},
 		},
+		{
+			name:     "sequential reads, second starts at non-byte-aligned offset",
+			data:     []byte{0xB4, 0xE0, 0x3C},
+			reads:    []int{12, 12},
+			expected: []uint64{0xB4E, 0x03C},
+		},
 	}
 
 	for _, tt := range tests {
