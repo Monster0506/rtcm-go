@@ -21,6 +21,12 @@ func TestBitReaderReadUint(t *testing.T) {
 			reads:    []int{0, 8},
 			expected: []uint64{0, 0xFF},
 		},
+		{
+			name:     "full 64-bit width, byte-aligned",
+			data:     []byte{0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF},
+			reads:    []int{64},
+			expected: []uint64{0x0123456789ABCDEF},
+		},
 	}
 
 	for _, tt := range tests {
