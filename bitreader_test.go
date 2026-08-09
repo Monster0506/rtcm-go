@@ -4,9 +4,9 @@ import "testing"
 
 func TestBitReaderReadUint(t *testing.T) {
 	tests := []struct {
-		name string
-		data []byte
-		reads []int
+		name     string
+		data     []byte
+		reads    []int
 		expected []uint64
 	}{
 		{
@@ -91,6 +91,54 @@ func TestBitReaderReadInt(t *testing.T) {
 				if got != want {
 					t.Fatalf("read %d: ReadInt(%d) = %d, want %d", i, nbits, got, want)
 				}
+			}
+		})
+	}
+}
+
+func TestBitReaderReadBits38(t *testing.T) {
+	frame := []byte{
+		0xd3, 0x00, 0x13, 0x3e, 0xd7, 0xd3, 0x02, 0x02, 0x98, 0x0e, 0xde, 0xef,
+		0x34, 0xb4, 0xbd, 0x62, 0xac, 0x09, 0x41, 0x98, 0x6f, 0x33, 0x36, 0x0b, 0x98,
+	}
+
+	tests := []struct {
+		name     string
+		skip     int
+		expected int64
+	}{
+		{
+			name:     "ECEF-X, positive value",
+			skip:     58,
+			expected: 11141045999,
+		},
+		{
+			name:     "ECEF-Y, negative value",
+			skip:     98,
+			expected: -48507297108,
+		},
+		{
+			name:     "ECEF-Z, positive value",
+			skip:     138,
+			expected: 39755214643,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := NewBitReader(frame)
+			remaining := tt.skip
+			for remaining > 0 {
+				chunk := remaining
+				if chunk > 64 {
+					chunk = 64
+				}
+				r.ReadUint(chunk)
+				remaining -= chunk
+			}
+			got := r.ReadBits38()
+			if got != tt.expected {
+				t.Fatalf("ReadBits38() = %d, want %d", got, tt.expected)
 			}
 		})
 	}
