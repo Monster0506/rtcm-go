@@ -15,6 +15,12 @@ func TestBitReaderReadUint(t *testing.T) {
 			reads:    []int{12},
 			expected: []uint64{0xB4E},
 		},
+		{
+			name:     "zero-width read does not advance position",
+			data:     []byte{0xFF},
+			reads:    []int{0, 8},
+			expected: []uint64{0, 0xFF},
+		},
 	}
 
 	for _, tt := range tests {
