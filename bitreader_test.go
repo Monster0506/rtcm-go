@@ -48,3 +48,50 @@ func TestBitReaderReadUint(t *testing.T) {
 		})
 	}
 }
+
+func TestBitReaderReadInt(t *testing.T) {
+	tests := []struct {
+		name     string
+		data     []byte
+		reads    []int
+		expected []int64
+	}{
+		{
+			name:     "negative value, sign bit set",
+			data:     []byte{0xFF},
+			reads:    []int{8},
+			expected: []int64{-1},
+		},
+		{
+			name:     "positive value, sign bit clear",
+			data:     []byte{0x7F},
+			reads:    []int{8},
+			expected: []int64{127},
+		},
+		{
+			name:     "full 64-bit width, all-ones pattern",
+			data:     []byte{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF},
+			reads:    []int{64},
+			expected: []int64{-1},
+		},
+		{
+			name:     "full 64-bit width, min int64 pattern",
+			data:     []byte{0x80, 0, 0, 0, 0, 0, 0, 0},
+			reads:    []int{64},
+			expected: []int64{-9223372036854775808},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := NewBitReader(tt.data)
+			for i, nbits := range tt.reads {
+				got := r.ReadInt(nbits)
+				want := tt.expected[i]
+				if got != want {
+					t.Fatalf("read %d: ReadInt(%d) = %d, want %d", i, nbits, got, want)
+				}
+			}
+		})
+	}
+}
