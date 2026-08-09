@@ -26,3 +26,12 @@ func (r *BitReader) ReadUint(nbits int) uint64 {
 	}
 	return v
 }
+
+func (r *BitReader) ReadInt(nbits int) int64 {
+	v := r.ReadUint(nbits)
+	if nbits <= 0 || nbits > 64 {
+		return int64(v)
+	}
+	shift := 64 - nbits
+	return int64(v<<shift) >> shift
+}
