@@ -14,3 +14,16 @@ type Msg1005 struct {
 	QuarterCycleIndicator     int
 	ECEFZM                    float64
 }
+
+func DecodeMsg1005(payload []byte) (*Msg1005, error) {
+	r := NewBitReader(payload)
+	m := &Msg1005{}
+	m.MessageType = int(r.ReadUint(12))
+	m.StationID = int(r.ReadUint(12))
+	m.ITRFRealizationYear = int(r.ReadUint(6))
+	m.GPSIndicator = r.ReadUint(1) != 0
+	m.GLONASSIndicator = r.ReadUint(1) != 0
+	m.GalileoIndicator = r.ReadUint(1) != 0
+	m.ReferenceStationIndicator = r.ReadUint(1) != 0
+	return m, nil
+}
