@@ -15,9 +15,8 @@ type Msg1005 struct {
 	ECEFZM                    float64
 }
 
-func DecodeMsg1005(payload []byte) (*Msg1005, error) {
-	r := NewBitReader(payload)
-	m := &Msg1005{}
+func decodeMsg1005Fields(r *BitReader) Msg1005 {
+	var m Msg1005
 	m.MessageType = int(r.ReadUint(12))
 	m.StationID = int(r.ReadUint(12))
 	m.ITRFRealizationYear = int(r.ReadUint(6))
@@ -31,5 +30,10 @@ func DecodeMsg1005(payload []byte) (*Msg1005, error) {
 	m.ECEFYM = float64(r.ReadBits38()) * 0.0001
 	m.QuarterCycleIndicator = int(r.ReadUint(2))
 	m.ECEFZM = float64(r.ReadBits38()) * 0.0001
-	return m, nil
+	return m
+}
+
+func DecodeMsg1005(payload []byte) (*Msg1005, error) {
+	m := decodeMsg1005Fields(NewBitReader(payload))
+	return &m, nil
 }
