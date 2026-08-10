@@ -37,7 +37,7 @@ func ParseFrame(data []byte) (payload []byte, consumed int, err error) {
 	}
 	total := 3 + length + 3
 	if CRC24Q(data[:total]) != 0 {
-		return nil, 0, fmt.Errorf("rtcm: RTCM3 message invalid - failed CRC")
+		return nil, skip + total, fmt.Errorf("rtcm: RTCM3 message invalid - failed CRC")
 	}
 	return data[3 : 3+length], skip + total, nil
 }
