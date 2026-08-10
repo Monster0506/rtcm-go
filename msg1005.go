@@ -25,5 +25,11 @@ func DecodeMsg1005(payload []byte) (*Msg1005, error) {
 	m.GLONASSIndicator = r.ReadUint(1) != 0
 	m.GalileoIndicator = r.ReadUint(1) != 0
 	m.ReferenceStationIndicator = r.ReadUint(1) != 0
+	m.ECEFXM = float64(r.ReadBits38()) * 0.0001
+	m.OscillatorIndicator = r.ReadUint(1) != 0
+	r.ReadUint(1)
+	m.ECEFYM = float64(r.ReadBits38()) * 0.0001
+	m.QuarterCycleIndicator = int(r.ReadUint(2))
+	m.ECEFZM = float64(r.ReadBits38()) * 0.0001
 	return m, nil
 }
