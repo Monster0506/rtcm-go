@@ -143,3 +143,70 @@ func TestBitReaderReadBits38(t *testing.T) {
 		})
 	}
 }
+
+func TestBitReaderReadSignMagnitude(t *testing.T) {
+	tests := []struct {
+		name     string
+		data     []byte
+		nbits    int
+		expected int64
+	}{
+		{
+			name:     "spec worked example, negative",
+			data:     []byte{0b10000101},
+			nbits:    8,
+			expected: -5,
+		},
+		{
+			name:     "spec worked example, positive",
+			data:     []byte{0b00000101},
+			nbits:    8,
+			expected: 5,
+		},
+		{
+			name:     "zero",
+			data:     []byte{0x00},
+			nbits:    8,
+			expected: 0,
+		},
+		{
+			name:     "negative zero collapses to zero",
+			data:     []byte{0x80},
+			nbits:    8,
+			expected: 0,
+		},
+		{
+			name:     "max positive magnitude, 24-bit (GLONASS DF111 width)",
+			data:     []byte{0x7F, 0xFF, 0xFF},
+			nbits:    24,
+			expected: 1<<23 - 1,
+		},
+		{
+			name:     "max negative magnitude, 24-bit (GLONASS DF111 width)",
+			data:     []byte{0xFF, 0xFF, 0xFF},
+			nbits:    24,
+			expected: -(1<<23 - 1),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := NewBitReader(tt.data)
+			got := r.ReadSignMagnitude(tt.nbits)
+			if got != tt.expected {
+				t.Fatalf("ReadSignMagnitude(%d) = %d, want %d", tt.nbits, got, tt.expected)
+			}
+		})
+	}
+}
+
+func TestBitReaderReadSignMagnitudeSequential(t *testing.T) {
+	data := []byte{0b10000101, 0b00000101}
+	r := NewBitReader(data)
+	if got := r.ReadSignMagnitude(8); got != -5 {
+		t.Fatalf("first read = %d, want -5", got)
+	}
+	if got := r.ReadSignMagnitude(8); got != 5 {
+		t.Fatalf("second read = %d, want 5", got)
+	}
+}
