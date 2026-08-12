@@ -43,3 +43,12 @@ func (r *BitReader) ReadBits38() int64 {
 	low := r.ReadUint(6)
 	return high*64 + int64(low)
 }
+
+func (r *BitReader) ReadSignMagnitude(nbits int) int64 {
+	raw := r.ReadUint(nbits)
+	magnitude := int64(raw & ((1 << (nbits - 1)) - 1))
+	if raw>>(nbits-1) != 0 {
+		return -magnitude
+	}
+	return magnitude
+}
