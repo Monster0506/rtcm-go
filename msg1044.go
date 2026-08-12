@@ -1,38 +1,36 @@
 package rtcm
 
-// Msg1044 holds the raw ICD field values from a QZSS ephemeris message
-// (Message Type 1044). Values are NOT scaled to physical units.
 type Msg1044 struct {
-	MessageType  int
-	SatelliteID  int
-	Toc          int
-	Af2          int64
-	Af1          int64
-	Af0          int64
-	IODE         int
-	Crs          int64
-	DeltaN       int64
-	M0           int64
-	Cuc          int64
-	Eccentricity uint64
-	Cus          int64
-	SqrtA        uint64
-	Toe          int
-	Cic          int64
-	Omega0       int64
-	Cis          int64
-	I0           int64
-	Crc          int64
-	Omega        int64
-	OmegaDot     int64
-	IDOT         int64
-	CodesOnL2    int
-	WeekNumber   int
-	URA          int
-	SVHealth     int
-	Tgd          int64
-	IODC         int
-	FitInterval  bool
+	MessageType             int
+	SatelliteID             int
+	TocS                    float64
+	Af2SPerS2               float64
+	Af1SPerS                float64
+	Af0S                    float64
+	IODE                    int
+	CrsM                    float64
+	DeltaNSemiCirclesPerS   float64
+	M0SemiCircles           float64
+	CucRad                  float64
+	Eccentricity            float64
+	CusRad                  float64
+	SqrtA                   float64
+	ToeS                    float64
+	CicRad                  float64
+	Omega0SemiCircles       float64
+	CisRad                  float64
+	I0SemiCircles           float64
+	CrcM                    float64
+	OmegaSemiCircles        float64
+	OmegaDotSemiCirclesPerS float64
+	IDOTSemiCirclesPerS     float64
+	CodesOnL2               int
+	WeekNumber              int
+	URA                     int
+	SVHealth                int
+	TgdS                    float64
+	IODC                    int
+	FitInterval             bool
 }
 
 func DecodeMsg1044(payload []byte) (*Msg1044, error) {
@@ -40,32 +38,32 @@ func DecodeMsg1044(payload []byte) (*Msg1044, error) {
 	m := &Msg1044{}
 	m.MessageType = int(r.ReadUint(12))
 	m.SatelliteID = int(r.ReadUint(4))
-	m.Toc = int(r.ReadUint(16))
-	m.Af2 = r.ReadInt(8)
-	m.Af1 = r.ReadInt(16)
-	m.Af0 = r.ReadInt(22)
+	m.TocS = float64(r.ReadUint(16)) * 16
+	m.Af2SPerS2 = float64(r.ReadInt(8)) * twoPow(-55)
+	m.Af1SPerS = float64(r.ReadInt(16)) * twoPow(-43)
+	m.Af0S = float64(r.ReadInt(22)) * twoPow(-31)
 	m.IODE = int(r.ReadUint(8))
-	m.Crs = r.ReadInt(16)
-	m.DeltaN = r.ReadInt(16)
-	m.M0 = r.ReadInt(32)
-	m.Cuc = r.ReadInt(16)
-	m.Eccentricity = r.ReadUint(32)
-	m.Cus = r.ReadInt(16)
-	m.SqrtA = r.ReadUint(32)
-	m.Toe = int(r.ReadUint(16))
-	m.Cic = r.ReadInt(16)
-	m.Omega0 = r.ReadInt(32)
-	m.Cis = r.ReadInt(16)
-	m.I0 = r.ReadInt(32)
-	m.Crc = r.ReadInt(16)
-	m.Omega = r.ReadInt(32)
-	m.OmegaDot = r.ReadInt(24)
-	m.IDOT = r.ReadInt(14)
+	m.CrsM = float64(r.ReadInt(16)) * twoPow(-5)
+	m.DeltaNSemiCirclesPerS = float64(r.ReadInt(16)) * twoPow(-43)
+	m.M0SemiCircles = float64(r.ReadInt(32)) * twoPow(-31)
+	m.CucRad = float64(r.ReadInt(16)) * twoPow(-29)
+	m.Eccentricity = float64(r.ReadUint(32)) * twoPow(-33)
+	m.CusRad = float64(r.ReadInt(16)) * twoPow(-29)
+	m.SqrtA = float64(r.ReadUint(32)) * twoPow(-19)
+	m.ToeS = float64(r.ReadUint(16)) * 16
+	m.CicRad = float64(r.ReadInt(16)) * twoPow(-29)
+	m.Omega0SemiCircles = float64(r.ReadInt(32)) * twoPow(-31)
+	m.CisRad = float64(r.ReadInt(16)) * twoPow(-29)
+	m.I0SemiCircles = float64(r.ReadInt(32)) * twoPow(-31)
+	m.CrcM = float64(r.ReadInt(16)) * twoPow(-5)
+	m.OmegaSemiCircles = float64(r.ReadInt(32)) * twoPow(-31)
+	m.OmegaDotSemiCirclesPerS = float64(r.ReadInt(24)) * twoPow(-43)
+	m.IDOTSemiCirclesPerS = float64(r.ReadInt(14)) * twoPow(-43)
 	m.CodesOnL2 = int(r.ReadUint(2))
 	m.WeekNumber = int(r.ReadUint(10))
 	m.URA = int(r.ReadUint(4))
 	m.SVHealth = int(r.ReadUint(6))
-	m.Tgd = r.ReadInt(8)
+	m.TgdS = float64(r.ReadInt(8)) * twoPow(-31)
 	m.IODC = int(r.ReadUint(10))
 	m.FitInterval = r.ReadUint(1) != 0
 	return m, nil

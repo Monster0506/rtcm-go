@@ -1,9 +1,5 @@
 package rtcm
 
-// Msg1020 holds the raw ICD field values from a GLONASS ephemeris message
-// (Message Type 1020). Values are NOT scaled to physical units. Signed
-// fields use GLONASS ICD sign-magnitude encoding (ReadSignMagnitude), not
-// two's complement -- see RTCM10403.3's "intS" data type note.
 type Msg1020 struct {
 	MessageType                  int
 	SatelliteID                  int
@@ -14,22 +10,22 @@ type Msg1020 struct {
 	Tk                           int
 	MSbOfBn                      bool
 	P2                           bool
-	Tb                           int
-	XnFirstDerivative            int64
-	Xn                           int64
-	XnSecondDerivative           int64
-	YnFirstDerivative            int64
-	Yn                           int64
-	YnSecondDerivative           int64
-	ZnFirstDerivative            int64
-	Zn                           int64
-	ZnSecondDerivative           int64
+	TbMin                        float64
+	XnFirstDerivativeKmPerS      float64
+	XnKm                         float64
+	XnSecondDerivativeKmPerS2    float64
+	YnFirstDerivativeKmPerS      float64
+	YnKm                         float64
+	YnSecondDerivativeKmPerS2    float64
+	ZnFirstDerivativeKmPerS      float64
+	ZnKm                         float64
+	ZnSecondDerivativeKmPerS2    float64
 	P3                           bool
-	GammaN                       int64
+	GammaN                       float64
 	MP                           int
 	MLn3rdString                 bool
-	TauN                         int64
-	MDeltaTau                    int64
+	TauNS                        float64
+	MDeltaTauS                   float64
 	En                           int
 	MP4                          bool
 	MFT                          int
@@ -37,9 +33,9 @@ type Msg1020 struct {
 	MM                           int
 	AvailabilityOfAdditionalData bool
 	NA                           int
-	TauC                         int64
+	TauCS                        float64
 	MN4                          int
-	MTauGPS                      int64
+	MTauGPSS                     float64
 	MLn5thString                 bool
 }
 
@@ -55,22 +51,22 @@ func DecodeMsg1020(payload []byte) (*Msg1020, error) {
 	m.Tk = int(r.ReadUint(12))
 	m.MSbOfBn = r.ReadUint(1) != 0
 	m.P2 = r.ReadUint(1) != 0
-	m.Tb = int(r.ReadUint(7))
-	m.XnFirstDerivative = r.ReadSignMagnitude(24)
-	m.Xn = r.ReadSignMagnitude(27)
-	m.XnSecondDerivative = r.ReadSignMagnitude(5)
-	m.YnFirstDerivative = r.ReadSignMagnitude(24)
-	m.Yn = r.ReadSignMagnitude(27)
-	m.YnSecondDerivative = r.ReadSignMagnitude(5)
-	m.ZnFirstDerivative = r.ReadSignMagnitude(24)
-	m.Zn = r.ReadSignMagnitude(27)
-	m.ZnSecondDerivative = r.ReadSignMagnitude(5)
+	m.TbMin = float64(r.ReadUint(7)) * 15
+	m.XnFirstDerivativeKmPerS = float64(r.ReadSignMagnitude(24)) * twoPow(-20)
+	m.XnKm = float64(r.ReadSignMagnitude(27)) * twoPow(-11)
+	m.XnSecondDerivativeKmPerS2 = float64(r.ReadSignMagnitude(5)) * twoPow(-30)
+	m.YnFirstDerivativeKmPerS = float64(r.ReadSignMagnitude(24)) * twoPow(-20)
+	m.YnKm = float64(r.ReadSignMagnitude(27)) * twoPow(-11)
+	m.YnSecondDerivativeKmPerS2 = float64(r.ReadSignMagnitude(5)) * twoPow(-30)
+	m.ZnFirstDerivativeKmPerS = float64(r.ReadSignMagnitude(24)) * twoPow(-20)
+	m.ZnKm = float64(r.ReadSignMagnitude(27)) * twoPow(-11)
+	m.ZnSecondDerivativeKmPerS2 = float64(r.ReadSignMagnitude(5)) * twoPow(-30)
 	m.P3 = r.ReadUint(1) != 0
-	m.GammaN = r.ReadSignMagnitude(11)
+	m.GammaN = float64(r.ReadSignMagnitude(11)) * twoPow(-40)
 	m.MP = int(r.ReadUint(2))
 	m.MLn3rdString = r.ReadUint(1) != 0
-	m.TauN = r.ReadSignMagnitude(22)
-	m.MDeltaTau = r.ReadSignMagnitude(5)
+	m.TauNS = float64(r.ReadSignMagnitude(22)) * twoPow(-30)
+	m.MDeltaTauS = float64(r.ReadSignMagnitude(5)) * twoPow(-30)
 	m.En = int(r.ReadUint(5))
 	m.MP4 = r.ReadUint(1) != 0
 	m.MFT = int(r.ReadUint(4))
@@ -78,9 +74,9 @@ func DecodeMsg1020(payload []byte) (*Msg1020, error) {
 	m.MM = int(r.ReadUint(2))
 	m.AvailabilityOfAdditionalData = r.ReadUint(1) != 0
 	m.NA = int(r.ReadUint(11))
-	m.TauC = r.ReadSignMagnitude(32)
+	m.TauCS = float64(r.ReadSignMagnitude(32)) * twoPow(-31)
 	m.MN4 = int(r.ReadUint(5))
-	m.MTauGPS = r.ReadSignMagnitude(22)
+	m.MTauGPSS = float64(r.ReadSignMagnitude(22)) * twoPow(-30)
 	m.MLn5thString = r.ReadUint(1) != 0
 	r.ReadUint(7) // reserved
 	return m, nil
