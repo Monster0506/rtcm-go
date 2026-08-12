@@ -18,6 +18,6 @@ func DecodeMsg1046(payload []byte) (*Msg1046, error) {
 	m.E5bDataValidityStatus = r.ReadUint(1) != 0
 	m.E1BSignalHealthStatus = int(r.ReadUint(2))
 	m.E1BDataValidityStatus = r.ReadUint(1) != 0
-	r.ReadUint(2) // reserved
+	r.ReadUint(2)
 	return m, nil
 }

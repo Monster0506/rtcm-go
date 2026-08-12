@@ -78,6 +78,6 @@ func DecodeMsg1020(payload []byte) (*Msg1020, error) {
 	m.MN4 = int(r.ReadUint(5))
 	m.MTauGPSS = float64(r.ReadSignMagnitude(22)) * twoPow(-30)
 	m.MLn5thString = r.ReadUint(1) != 0
-	r.ReadUint(7) // reserved
+	r.ReadUint(7)
 	return m, nil
 }

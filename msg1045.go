@@ -12,6 +12,6 @@ func DecodeMsg1045(payload []byte) (*Msg1045, error) {
 	m := &Msg1045{GalileoEphemerisCommon: c}
 	m.OSHS = int(r.ReadUint(2))
 	m.OSDVS = r.ReadUint(1) != 0
-	r.ReadUint(7) // reserved
+	r.ReadUint(7)
 	return m, nil
 }

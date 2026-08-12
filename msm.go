@@ -55,7 +55,7 @@ func DecodeMSMHeader(payload []byte) (*MSMHeader, error) {
 	m.EpochTime = r.ReadUint(30)
 	m.MultiMessage = r.ReadUint(1) != 0
 	m.IODS = int(r.ReadUint(3))
-	r.ReadUint(7) // reserved
+	r.ReadUint(7)
 	m.ClockSteering = int(r.ReadUint(2))
 	m.ExternalClock = int(r.ReadUint(2))
 	m.SmoothingIndicator = r.ReadUint(1) != 0
