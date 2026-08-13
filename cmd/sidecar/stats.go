@@ -37,22 +37,43 @@ type StatsFile struct {
 	mu          sync.Mutex
 	path        string
 	mountpoints map[string]*MountpointStats
+	typeNames   map[int]string
 }
 
 type statsFileDocument struct {
 	GeneratedAt time.Time                   `json:"generated_at"`
 	Mountpoints map[string]*MountpointStats `json:"mountpoints"`
+	TypeNames   map[int]string              `json:"type_names,omitempty"`
 }
 
 func NewStatsFile(path string) *StatsFile {
 	return &StatsFile{
 		path:        path,
 		mountpoints: make(map[string]*MountpointStats),
+		typeNames:   make(map[int]string),
 	}
 }
 
 func (f *StatsFile) Update(mountpoint string, fn func(*MountpointStats)) error {
 	f.mu.Lock()
+	f.applyLocked(mountpoint, fn)
+	err := f.writeLocked()
+	f.mu.Unlock()
+	return err
+}
+
+func (f *StatsFile) UpdateMessage(mountpoint string, msgType int, typeName string, fn func(*MountpointStats)) error {
+	f.mu.Lock()
+	f.applyLocked(mountpoint, fn)
+	if _, seen := f.typeNames[msgType]; !seen {
+		f.typeNames[msgType] = typeName
+	}
+	err := f.writeLocked()
+	f.mu.Unlock()
+	return err
+}
+
+func (f *StatsFile) applyLocked(mountpoint string, fn func(*MountpointStats)) {
 	s, ok := f.mountpoints[mountpoint]
 	if !ok {
 		s = &MountpointStats{Constellations: make(map[string]int), LastMessages: make(map[int]any)}
@@ -61,15 +82,13 @@ func (f *StatsFile) Update(mountpoint string, fn func(*MountpointStats)) error {
 	fn(s)
 	s.recomputeSatelliteCount()
 	s.LastUpdated = time.Now().UTC()
-	err := f.writeLocked()
-	f.mu.Unlock()
-	return err
 }
 
 func (f *StatsFile) writeLocked() error {
 	doc := statsFileDocument{
 		GeneratedAt: time.Now().UTC(),
 		Mountpoints: f.mountpoints,
+		TypeNames:   f.typeNames,
 	}
 	data, err := json.MarshalIndent(doc, "", "  ")
 	if err != nil {

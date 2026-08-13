@@ -53,6 +53,12 @@ func updateStats(stats *StatsFile, mountpoint string, fn func(*MountpointStats))
 	}
 }
 
+func updateMessageStats(stats *StatsFile, mountpoint string, msgType int, typeName string, fn func(*MountpointStats)) {
+	if err := stats.UpdateMessage(mountpoint, msgType, typeName, fn); err != nil {
+		log.Printf("[%s] writing stats file: %v", mountpoint, err)
+	}
+}
+
 func streamMountpoint(ctx context.Context, casterAddr, mountpoint string, stats *StatsFile) error {
 	conn, err := net.DialTimeout("tcp", casterAddr, 10*time.Second)
 	if err != nil {
@@ -153,8 +159,9 @@ func handleMessage(payload []byte, mountpoint string, stats *StatsFile) {
 	if err != nil {
 		return
 	}
+	typeName := rtcm.MessageTypeName(msgType)
 
-	updateStats(stats, mountpoint, func(s *MountpointStats) {
+	updateMessageStats(stats, mountpoint, msgType, typeName, func(s *MountpointStats) {
 		s.LastMessageType = msgType
 		s.LastMessages[msgType] = decoded
 		switch m := decoded.(type) {
