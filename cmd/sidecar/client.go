@@ -143,48 +143,32 @@ func handleMessage(payload []byte, mountpoint string, stats *StatsFile) {
 			log.Printf("[%s] recovered from panic decoding a message: %v", mountpoint, r)
 		}
 	}()
-	if len(payload) < 2 {
+	msgType := rtcm.PeekMessageType(payload)
+	if msgType < 0 {
 		return
 	}
-	msgType := int(rtcm.NewBitReader(payload).ReadUint(12))
+	decoded, err := rtcm.Decode(payload)
+	if err != nil {
+		return
+	}
 
-	switch msgType {
-	case 1008:
-		m, err := rtcm.DecodeMsg1008(payload)
-		if err != nil {
-			return
-		}
-		updateStats(stats, mountpoint, func(s *MountpointStats) {
-			s.LastMessageType = msgType
+	updateStats(stats, mountpoint, func(s *MountpointStats) {
+		s.LastMessageType = msgType
+		s.LastMessages[msgType] = decoded
+		switch m := decoded.(type) {
+		case *rtcm.Msg1008:
 			s.AntennaDescriptor = m.AntennaDescriptor
 			s.AntennaSerial = m.AntennaSerial
 			s.SetupID = m.SetupID
-		})
-	case 1033:
-		m, err := rtcm.DecodeMsg1033(payload)
-		if err != nil {
-			return
-		}
-		updateStats(stats, mountpoint, func(s *MountpointStats) {
-			s.LastMessageType = msgType
+		case *rtcm.Msg1033:
 			s.AntennaDescriptor = m.AntennaDescriptor
 			s.AntennaSerial = m.AntennaSerial
 			s.SetupID = m.SetupID
 			s.ReceiverType = m.ReceiverType
 			s.FirmwareVersion = m.FirmwareVersion
 			s.ReceiverSerial = m.ReceiverSerial
-		})
-	default:
-		if _, ok := rtcm.ConstellationForType(msgType); !ok {
-			return
-		}
-		m, err := rtcm.DecodeMSM(payload)
-		if err != nil {
-			return
-		}
-		updateStats(stats, mountpoint, func(s *MountpointStats) {
-			s.LastMessageType = msgType
+		case *rtcm.MSM:
 			s.Constellations[m.Constellation] = m.SatelliteCount
-		})
-	}
+		}
+	})
 }

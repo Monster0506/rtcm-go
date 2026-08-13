@@ -22,6 +22,7 @@ type MountpointStats struct {
 	LastMessageType   int            `json:"last_message_type,omitempty"`
 	LastUpdated       time.Time      `json:"last_updated"`
 	LastError         string         `json:"last_error,omitempty"`
+	LastMessages      map[int]any    `json:"last_messages,omitempty"`
 }
 
 func (s *MountpointStats) recomputeSatelliteCount() {
@@ -54,7 +55,7 @@ func (f *StatsFile) Update(mountpoint string, fn func(*MountpointStats)) error {
 	f.mu.Lock()
 	s, ok := f.mountpoints[mountpoint]
 	if !ok {
-		s = &MountpointStats{Constellations: make(map[string]int)}
+		s = &MountpointStats{Constellations: make(map[string]int), LastMessages: make(map[int]any)}
 		f.mountpoints[mountpoint] = s
 	}
 	fn(s)
