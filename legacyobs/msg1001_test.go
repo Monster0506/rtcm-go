@@ -1,0 +1,51 @@
+package legacyobs
+
+import (
+	"testing"
+
+	"github.com/Monster0506/rtcm-go/core"
+	"github.com/Monster0506/rtcm-go/internal/testutil"
+)
+
+func TestDecodeMsg1001(t *testing.T) {
+	frame := []byte{
+		0xd3, 0x00, 0x58, 0x3e, 0x90, 0x00, 0x4c, 0x0a, 0xeb, 0x42, 0xb0, 0x09,
+		0xaf, 0x75, 0x73, 0xe1, 0xde, 0xdf, 0xc3, 0x02, 0xa9, 0xff, 0x7c, 0xc6,
+		0xbf, 0xf5, 0x41, 0xb8, 0x70, 0xbc, 0xeb, 0xdb, 0xfc, 0x43, 0x74, 0x65,
+		0xe0, 0x05, 0xc5, 0x7f, 0x24, 0x91, 0x07, 0x22, 0x07, 0x8d, 0xdf, 0xc6,
+		0x04, 0xc2, 0x14, 0x00, 0xab, 0xdf, 0xf4, 0xc2, 0x17, 0x3b, 0xff, 0x75,
+		0xbb, 0xfd, 0xf0, 0xb1, 0x39, 0x67, 0xdc, 0x8e, 0x7f, 0x44, 0x4e, 0xf1,
+		0xe5, 0xf0, 0x18, 0x7f, 0xc7, 0x3a, 0xde, 0x1f, 0x00, 0x00, 0x53, 0x20,
+		0x50, 0x9f, 0x2e, 0x1f, 0x5b, 0x5d, 0xfc, 0xfb, 0xb5, 0x16,
+	}
+	payload, _, err := core.ParseFrame(frame)
+	if err != nil {
+		t.Fatalf("ParseFrame: unexpected error: %v", err)
+	}
+	msg, err := DecodeMsg1001(payload)
+	if err != nil {
+		t.Fatalf("DecodeMsg1001: unexpected error: %v", err)
+	}
+	if msg.MessageType != 1001 {
+		t.Fatalf("MessageType = %d, want 1001", msg.MessageType)
+	}
+	if msg.StationID != 0 {
+		t.Fatalf("StationID = %d, want 0", msg.StationID)
+	}
+	if msg.GPSEpochTOWMs != 318946000 {
+		t.Fatalf("GPSEpochTOWMs = %d, want 318946000", msg.GPSEpochTOWMs)
+	}
+	if len(msg.Satellites) != 11 {
+		t.Fatalf("len(Satellites) = %d, want 11", len(msg.Satellites))
+	}
+	s0 := msg.Satellites[0]
+	if s0.SatelliteID != 2 {
+		t.Fatalf("Satellites[0].SatelliteID = %d, want 2", s0.SatelliteID)
+	}
+	testutil.CheckFloat(t, "Satellites[0].L1PseudorangeM", s0.L1PseudorangeM, 282760.82, 1e-6)
+	testutil.CheckFloat(t, "Satellites[0].L1PhaserangeM", s0.L1PhaserangeM, -30.853, 1e-6)
+	if s0.L1LockTimeIndicator != 127 {
+		t.Fatalf("Satellites[0].L1LockTimeIndicator = %d, want 127", s0.L1LockTimeIndicator)
+	}
+
+}

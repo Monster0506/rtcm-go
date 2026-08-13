@@ -1,6 +1,12 @@
 package rtcm
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/Monster0506/rtcm-go/core"
+	"github.com/Monster0506/rtcm-go/legacyobs"
+	"github.com/Monster0506/rtcm-go/msm"
+)
 
 func TestDecodeGeneric(t *testing.T) {
 	frame := []byte{
@@ -13,7 +19,7 @@ func TestDecodeGeneric(t *testing.T) {
 		0xe5, 0xf0, 0x18, 0x7f, 0xc7, 0x3a, 0xde, 0x1f, 0x00, 0x00, 0x53, 0x20,
 		0x50, 0x9f, 0x2e, 0x1f, 0x5b, 0x5d, 0xfc, 0xfb, 0xb5, 0x16,
 	}
-	payload, _, err := ParseFrame(frame)
+	payload, _, err := core.ParseFrame(frame)
 	if err != nil {
 		t.Fatalf("ParseFrame: %v", err)
 	}
@@ -24,9 +30,9 @@ func TestDecodeGeneric(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Decode: %v", err)
 	}
-	m, ok := result.(*Msg1001)
+	m, ok := result.(*legacyobs.Msg1001)
 	if !ok {
-		t.Fatalf("Decode returned %T, want *Msg1001", result)
+		t.Fatalf("Decode returned %T, want *legacyobs.Msg1001", result)
 	}
 	if m.MessageType != 1001 || m.StationID != 0 {
 		t.Fatalf("unexpected decode: %+v", m)
@@ -59,7 +65,7 @@ func TestDecodeGenericMSM(t *testing.T) {
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xa9, 0x74, 0xd0,
 	}
-	payload, _, err := ParseFrame(frame)
+	payload, _, err := core.ParseFrame(frame)
 	if err != nil {
 		t.Fatalf("ParseFrame: %v", err)
 	}
@@ -70,9 +76,9 @@ func TestDecodeGenericMSM(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Decode: %v", err)
 	}
-	m, ok := result.(*MSM)
+	m, ok := result.(*msm.MSM)
 	if !ok {
-		t.Fatalf("Decode returned %T, want *MSM", result)
+		t.Fatalf("Decode returned %T, want *msm.MSM", result)
 	}
 	if m.Constellation != "GPS" || m.SatelliteCount != 10 {
 		t.Fatalf("unexpected decode: %+v", m.MSMHeader)
@@ -81,7 +87,7 @@ func TestDecodeGenericMSM(t *testing.T) {
 
 func TestDecodeGenericUnknownType(t *testing.T) {
 	frame := []byte{0xd3, 0x00, 0x04, 0x3f, 0xa0, 0x00, 0x00, 0xc8, 0x7f, 0x74}
-	payload, _, err := ParseFrame(frame)
+	payload, _, err := core.ParseFrame(frame)
 	if err != nil {
 		t.Fatalf("ParseFrame: %v", err)
 	}

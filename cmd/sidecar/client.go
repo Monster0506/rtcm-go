@@ -10,6 +10,8 @@ import (
 	"time"
 
 	rtcm "github.com/Monster0506/rtcm-go"
+	"github.com/Monster0506/rtcm-go/msm"
+	"github.com/Monster0506/rtcm-go/station"
 )
 
 const maxFrameBuffer = 64 * 1024
@@ -156,18 +158,18 @@ func handleMessage(payload []byte, mountpoint string, stats *StatsFile) {
 		s.LastMessageType = msgType
 		s.LastMessages[msgType] = decoded
 		switch m := decoded.(type) {
-		case *rtcm.Msg1008:
+		case *station.Msg1008:
 			s.AntennaDescriptor = m.AntennaDescriptor
 			s.AntennaSerial = m.AntennaSerial
 			s.SetupID = m.SetupID
-		case *rtcm.Msg1033:
+		case *station.Msg1033:
 			s.AntennaDescriptor = m.AntennaDescriptor
 			s.AntennaSerial = m.AntennaSerial
 			s.SetupID = m.SetupID
 			s.ReceiverType = m.ReceiverType
 			s.FirmwareVersion = m.FirmwareVersion
 			s.ReceiverSerial = m.ReceiverSerial
-		case *rtcm.MSM:
+		case *msm.MSM:
 			s.Constellations[m.Constellation] = m.SatelliteCount
 		}
 	})
